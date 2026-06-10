@@ -1,0 +1,45 @@
+@use '@/styles/variables.scss' as *;
+
+.container {
+  min-height: 100vh;
+  background: $color-bg-page;
+  padding: $spacing-lg;
+}
+
+.header {
+  margin-bottom: $spacing-xl;
+}
+
+.title {
+  font-size: $font-size-xxl;
+  font-weight: $font-weight-bold;
+  color: $color-primary;
+  text-shadow: 0 0 20rpx rgba(57, 255, 20, 0.5);
+}
+
+.subtitle {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  margin-top: $spacing-xs;
+}
+
+.placeholder {
+  text-align: center;
+  padding: 200rpx 0;
+}
+
+.placeholderIcon {
+  font-size: 120rpx;
+  margin-bottom: $spacing-lg;
+}
+
+.placeholderTitle {
+  font-size: $font-size-xl;
+  color: $color-text-primary;
+  margin-bottom: $spacing-sm;
+}
+
+.placeholderText {
+  font-size: $font-size-md;
+  color: $color-text-tertiary;
+}

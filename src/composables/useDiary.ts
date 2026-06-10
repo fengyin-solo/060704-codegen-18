@@ -167,6 +167,12 @@ export function useDiary(diaryId?: string) {
     loadDiary(currentDiary.value.id)
   }
 
+  function updateBgm(bgm: string | null) {
+    if (!currentDiary.value || !isOwner.value) return
+    diaryStore.updateDiary(currentDiary.value.id, { bgm })
+    loadDiary(currentDiary.value.id)
+  }
+
   let unsubscribe: (() => void) | null = null
 
   onMounted(() => {
@@ -218,6 +224,7 @@ export function useDiary(diaryId?: string) {
     removeMethodFromPipeline,
     useItem,
     checkTransition,
-    updateSchedule
+    updateSchedule,
+    updateBgm
   }
 }

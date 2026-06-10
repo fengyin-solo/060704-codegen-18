@@ -1,0 +1,574 @@
+@use '@/styles/variables.scss' as *;
+
+.container {
+  min-height: 100vh;
+  background: $color-bg-page;
+  padding: $spacing-lg;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+  margin-bottom: $spacing-xl;
+}
+
+.backBtn {
+  @include button-reset;
+  height: $button-height-sm;
+  padding: 0 $spacing-md;
+  background: transparent;
+  border: 2rpx solid $color-border;
+  border-radius: $radius-button;
+  color: $color-text-secondary;
+  font-size: $font-size-sm;
+
+  &:active {
+    opacity: 0.8;
+  }
+}
+
+.actionBtns {
+  display: flex;
+  gap: $spacing-sm;
+  margin-left: auto;
+  flex-wrap: wrap;
+}
+
+.actionBtn {
+  @include button-reset;
+  height: $button-height-sm;
+  padding: 0 $spacing-md;
+  background: transparent;
+  border: 2rpx solid;
+  border-radius: $radius-button;
+  font-size: $font-size-sm;
+  transition: all $transition-base;
+
+  &:active {
+    opacity: 0.8;
+  }
+
+  &.primary {
+    border-color: $color-diary-fresh;
+    color: $color-diary-fresh;
+  }
+
+  &.warning {
+    border-color: $color-diary-rotting;
+    color: $color-diary-rotting;
+  }
+
+  &.danger {
+    border-color: $color-error;
+    color: $color-error;
+  }
+
+  &.info {
+    border-color: $color-info;
+    color: $color-info;
+  }
+
+  &.purple {
+    border-color: $color-bgm;
+    color: $color-bgm;
+  }
+
+  &.frozen {
+    border-color: $color-diary-frozen;
+    color: $color-diary-frozen;
+  }
+
+  &.gold {
+    border-color: $color-diary-gold;
+    color: $color-diary-gold;
+  }
+
+  &:disabled {
+    opacity: 0.4;
+  }
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xl;
+
+  @media (min-width: 900px) {
+    flex-direction: row;
+    align-items: flex-start;
+  }
+}
+
+.canvasSection {
+  flex: 1;
+}
+
+.canvasWrapper {
+  border: 2rpx solid;
+  border-radius: $radius-lg;
+  overflow: hidden;
+  background: #000;
+}
+
+.canvas {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.timePreview {
+  margin-top: $spacing-md;
+}
+
+.timeLabel {
+  display: block;
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+  margin-bottom: $spacing-sm;
+}
+
+.timeSlider {
+  width: 100%;
+  height: 4rpx;
+}
+
+.timeHint {
+  display: flex;
+  justify-content: space-between;
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  margin-top: $spacing-xs;
+}
+
+.sidebar {
+  width: 100%;
+
+  @media (min-width: 900px) {
+    width: 500rpx;
+    flex-shrink: 0;
+  }
+}
+
+.infoCard {
+  background: $color-bg-card;
+  border: 2rpx solid $color-border;
+  border-radius: $radius-lg;
+  padding: $spacing-lg;
+  margin-bottom: $spacing-md;
+}
+
+.diaryTitle {
+  font-size: $font-size-xxl;
+  font-weight: $font-weight-bold;
+  color: $color-text-primary;
+  margin-bottom: $spacing-md;
+}
+
+.stateBadge {
+  display: inline-block;
+  padding: 4rpx 16rpx;
+  border: 2rpx solid;
+  border-radius: $radius-sm;
+  font-size: $font-size-sm;
+  margin-right: $spacing-sm;
+}
+
+.frozenBadge {
+  display: inline-block;
+  padding: 4rpx 16rpx;
+  border: 2rpx solid $color-diary-frozen;
+  border-radius: $radius-sm;
+  font-size: $font-size-xs;
+  color: $color-diary-frozen;
+  background: rgba(0, 212, 255, 0.1);
+}
+
+.progressSection {
+  margin-top: $spacing-lg;
+}
+
+.progressLabel {
+  display: flex;
+  justify-content: space-between;
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  margin-bottom: $spacing-xs;
+}
+
+.progressBar {
+  height: 12rpx;
+  background: $color-bg-page;
+  border-radius: $radius-round;
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  transition: width 0.5s ease;
+}
+
+.progressDots {
+  display: flex;
+  justify-content: space-between;
+  margin-top: $spacing-xs;
+}
+
+.progressDot {
+  font-size: $font-size-xs;
+}
+
+.metaList {
+  margin-top: $spacing-lg;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+}
+
+.metaItem {
+  display: flex;
+  justify-content: space-between;
+  font-size: $font-size-sm;
+}
+
+.metaLabel {
+  color: $color-text-tertiary;
+}
+
+.metaValue {
+  color: $color-text-primary;
+}
+
+.bgmCard {
+  background: $color-bg-card;
+  border: 2rpx solid rgba(168, 85, 247, 0.3);
+  border-radius: $radius-lg;
+  padding: $spacing-lg;
+  margin-bottom: $spacing-md;
+}
+
+.bgmHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $spacing-md;
+}
+
+.bgmTitle {
+  font-size: $font-size-lg;
+  color: $color-bgm;
+}
+
+.bgmStatus {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}
+
+.bgmInfo {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  margin-bottom: $spacing-md;
+}
+
+.bgmIcon {
+  font-size: $font-size-xxl;
+}
+
+.bgmName {
+  font-size: $font-size-md;
+  color: $color-text-primary;
+}
+
+.bgmMood {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}
+
+.bgmInteraction {
+  margin-bottom: $spacing-md;
+}
+
+.playBtn {
+  @include button-reset;
+  width: 100%;
+  height: $button-height-md;
+  background: transparent;
+  border: 2rpx solid $color-bgm;
+  border-radius: $radius-button;
+  color: $color-bgm;
+  font-size: $font-size-md;
+  margin-bottom: $spacing-xs;
+
+  &:active {
+    opacity: 0.8;
+  }
+}
+
+.bgmHint {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  text-align: center;
+}
+
+.bgmControls {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+}
+
+.controlBtn {
+  @include button-reset;
+  width: 80rpx;
+  height: $button-height-sm;
+  background: transparent;
+  border: 2rpx solid;
+  border-radius: $radius-button;
+  font-size: $font-size-md;
+  flex-shrink: 0;
+
+  &.play {
+    border-color: $color-bgm;
+    color: $color-bgm;
+  }
+
+  &.mute {
+    border-color: $color-border;
+    color: $color-text-secondary;
+  }
+
+  &.muted {
+    border-color: $color-error;
+    color: $color-error;
+  }
+
+  &:active {
+    opacity: 0.8;
+  }
+}
+
+.volumeSlider {
+  flex: 1;
+  height: 4rpx;
+}
+
+.pipelineCard {
+  background: $color-bg-card;
+  border: 2rpx solid $color-border;
+  border-radius: $radius-lg;
+  padding: $spacing-lg;
+}
+
+.pipelineTitle {
+  font-size: $font-size-lg;
+  color: $color-diary-fresh;
+  margin-bottom: $spacing-md;
+}
+
+.pipelineItem {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  padding: $spacing-sm;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: $radius-sm;
+  margin-bottom: $spacing-sm;
+
+  &.disabled {
+    opacity: 0.5;
+  }
+}
+
+.pipelineIndex {
+  width: 48rpx;
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}
+
+.pipelineName {
+  flex: 1;
+  font-size: $font-size-sm;
+  color: $color-text-primary;
+}
+
+.pipelineStatus {
+  width: 16rpx;
+  height: 16rpx;
+  border-radius: 50%;
+  background: $color-text-tertiary;
+
+  &.enabled {
+    background: $color-diary-fresh;
+  }
+}
+
+.emptyPipeline {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+  text-align: center;
+  padding: $spacing-lg 0;
+}
+
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.8);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: $spacing-lg;
+}
+
+.modalContent {
+  background: $color-bg-card;
+  border: 2rpx solid;
+  border-radius: $radius-lg;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: $spacing-xl;
+}
+
+.modalHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $spacing-xl;
+}
+
+.modalTitle {
+  font-size: $font-size-xl;
+  text-shadow: 0 0 20rpx currentColor;
+}
+
+.closeBtn {
+  @include button-reset;
+  font-size: $font-size-xl;
+  color: $color-text-secondary;
+  background: transparent;
+  border: none;
+}
+
+.bgmGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: $spacing-sm;
+}
+
+.bgmOption {
+  @include button-reset;
+  padding: $spacing-md;
+  background: $color-bg-page;
+  border: 2rpx solid $color-border;
+  border-radius: $radius-md;
+  color: $color-text-secondary;
+  font-size: $font-size-sm;
+  text-align: left;
+  transition: all $transition-base;
+
+  &.active {
+    border-color: $color-bgm;
+    color: $color-bgm;
+    background: rgba(168, 85, 247, 0.1);
+  }
+
+  &:active {
+    opacity: 0.8;
+  }
+}
+
+.noBgmOption {
+  @include button-reset;
+  width: 100%;
+  height: $button-height-md;
+  padding: 0 $spacing-md;
+  background: $color-bg-page;
+  border: 2rpx solid $color-border;
+  border-radius: $radius-md;
+  color: $color-text-secondary;
+  font-size: $font-size-sm;
+  text-align: left;
+  transition: all $transition-base;
+  margin-bottom: $spacing-sm;
+
+  &.active {
+    border-color: $color-bgm;
+    color: $color-bgm;
+    background: rgba(168, 85, 247, 0.1);
+  }
+
+  &:active {
+    opacity: 0.8;
+  }
+}
+
+.modalFooter {
+  display: flex;
+  gap: $spacing-md;
+  justify-content: flex-end;
+  margin-top: $spacing-xl;
+  padding-top: $spacing-lg;
+  border-top: 2rpx solid $color-divider;
+}
+
+.cancelBtn {
+  @include button-reset;
+  height: $button-height-md;
+  padding: 0 $spacing-xl;
+  background: transparent;
+  border: 2rpx solid $color-border;
+  border-radius: $radius-button;
+  color: $color-text-secondary;
+  font-size: $font-size-md;
+
+  &:active {
+    opacity: 0.8;
+  }
+}
+
+.confirmBtn {
+  @include button-reset;
+  height: $button-height-md;
+  padding: 0 $spacing-xl;
+  background: transparent;
+  border: 2rpx solid $color-bgm;
+  border-radius: $radius-button;
+  color: $color-bgm;
+  font-size: $font-size-md;
+
+  &:active {
+    opacity: 0.8;
+  }
+}
+
+.scheduledOverlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(26, 26, 46, 0.95);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+}
+
+.scheduledIcon {
+  font-size: 120rpx;
+  margin-bottom: $spacing-lg;
+}
+
+.scheduledText {
+  font-size: $font-size-lg;
+  color: #94a3b8;
+  margin-bottom: $spacing-md;
+}
+
+.scheduledCountdown {
+  font-size: $font-size-sm;
+  color: $color-info;
+}
+
+.canvasContainer {
+  position: relative;
+}

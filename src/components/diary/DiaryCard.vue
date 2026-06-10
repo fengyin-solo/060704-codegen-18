@@ -8,6 +8,7 @@ import { globalTimeline } from '@/engine/Timeline'
 import { pluginLoader } from '@/engine/PluginLoader'
 import { StateMachine } from '@/engine/StateMachine'
 import { useDiaryStore } from '@/stores/diary'
+import { getBgmTrackById } from '@/config/bgm'
 
 interface Props {
   diary: Diary
@@ -35,6 +36,7 @@ const hasSchedule = computed(() => {
 
 const stateColor = computed(() => STATE_COLORS[props.diary.state])
 const stateName = computed(() => STATE_NAMES[props.diary.state])
+const bgmTrack = computed(() => props.diary.bgm ? getBgmTrackById(props.diary.bgm) : null)
 
 const diaryType = computed(() => {
   return pluginLoader.getDiaryType(props.diary.type)
@@ -175,6 +177,13 @@ function closeDeleteConfirm(e: Event) {
         <span class="text-4xl">🪦</span>
       </div>
       
+      <div
+        v-if="bgmTrack"
+        class="absolute top-2 left-2 bg-purple-500/80 text-white px-2 py-1 rounded text-xs font-vt323 flex items-center gap-1"
+      >
+        🎵 {{ bgmTrack.name }}
+      </div>
+      
       <div 
         v-if="hasSchedule && diary.state !== 'scheduled'"
         class="absolute bottom-2 left-2 right-2 flex items-center gap-1 flex-wrap"
@@ -222,9 +231,17 @@ function closeDeleteConfirm(e: Event) {
         <span class="font-vt323">
           {{ diaryType?.name || '未知类型' }}
         </span>
-        <span class="font-vt323">
-          管线: {{ diary.pipeline.filter(p => p.enabled).length }} 种
-        </span>
+        <div class="flex items-center gap-2">
+          <span 
+            v-if="bgmTrack"
+            class="font-vt323 text-purple-400 flex items-center gap-0.5"
+          >
+            {{ bgmTrack.icon }} {{ bgmTrack.name }}
+          </span>
+          <span class="font-vt323">
+            管线: {{ diary.pipeline.filter(p => p.enabled).length }} 种
+          </span>
+        </div>
       </div>
       
       <div v-if="isOwner" class="mt-2 pt-2 border-t border-gray-800">

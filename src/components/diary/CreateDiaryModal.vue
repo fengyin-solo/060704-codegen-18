@@ -5,6 +5,7 @@ import { useDiaryStore } from '@/stores/diary'
 import { pluginLoader } from '@/engine/PluginLoader'
 import { renderPipeline } from '@/engine/RenderPipeline'
 import { globalTimeline } from '@/engine/Timeline'
+import { BGM_TRACKS } from '@/config/bgm'
 import type { PipelineStep, DiaryType, DiarySchedule } from '@/types'
 
 const emit = defineEmits<{
@@ -19,8 +20,10 @@ const title = ref('')
 const content = ref('')
 const selectedType = ref('base')
 const selectedMethods = ref<string[]>(['blur', 'chroma'])
+const selectedBgm = ref<string | null>(null)
 const isCreating = ref(false)
 const showSchedule = ref(false)
+const showBgmPicker = ref(false)
 
 const enablePublishAt = ref(false)
 const enableDecayStartAt = ref(false)
@@ -106,7 +109,8 @@ async function handleCreate() {
     title.value.trim(),
     content.value.trim(),
     pipeline,
-    schedule
+    schedule,
+    selectedBgm.value
   )
   
   setTimeout(() => {
@@ -354,6 +358,58 @@ function formatTime(offset: number): string {
                     </span>
                   </template>
                 </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="border-t border-gray-700 pt-4">
+            <button
+              class="flex items-center gap-2 font-vt323 text-lg transition-colors"
+              :class="showBgmPicker ? 'text-purple-400' : 'text-gray-400 hover:text-white'"
+              @click="showBgmPicker = !showBgmPicker"
+            >
+              <span>{{ showBgmPicker ? '▼' : '▶' }}</span>
+              <span>🎵 日记配乐</span>
+              <span class="text-sm text-gray-500 ml-2">
+                {{ selectedBgm ? BGM_TRACKS.find(t => t.id === selectedBgm)?.icon + ' ' + BGM_TRACKS.find(t => t.id === selectedBgm)?.name : '无' }}
+              </span>
+            </button>
+            
+            <div v-show="showBgmPicker" class="mt-4 space-y-3 bg-gray-800/50 rounded-lg p-4 border border-gray-700">
+              <p class="text-gray-400 text-sm font-vt323 mb-2">
+                为公开日记绑定背景音效，访客查看时将一起播放，营造氛围感。
+              </p>
+              
+              <button
+                class="w-full px-3 py-2 rounded font-vt323 text-sm transition-all border-2 text-left"
+                :class="[
+                  selectedBgm === null
+                    ? 'bg-purple-500/20 border-purple-500 text-purple-400'
+                    : 'bg-gray-800/30 border-gray-700 text-gray-500 hover:border-gray-500'
+                ]"
+                @click="selectedBgm = null"
+              >
+                🔇 不配乐
+              </button>
+              
+              <div class="grid grid-cols-2 gap-2">
+                <button
+                  v-for="track in BGM_TRACKS"
+                  :key="track.id"
+                  class="px-3 py-2 rounded font-vt323 text-sm transition-all border-2 text-left"
+                  :class="[
+                    selectedBgm === track.id
+                      ? 'bg-purple-500/20 border-purple-500 text-purple-400'
+                      : 'bg-gray-800/30 border-gray-700 text-gray-500 hover:border-gray-500'
+                  ]"
+                  @click="selectedBgm = track.id"
+                >
+                  <div class="flex items-center gap-1">
+                    <span>{{ track.icon }}</span>
+                    <span>{{ track.name }}</span>
+                  </div>
+                  <div class="text-xs opacity-60 mt-0.5">{{ track.mood }}</div>
+                </button>
               </div>
             </div>
           </div>

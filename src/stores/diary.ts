@@ -43,7 +43,10 @@ export const useDiaryStore = defineStore('diary', () => {
   })
 
   function init() {
-    diaries.value = storage.getDiaries()
+    diaries.value = storage.getDiaries().map(d => ({
+      ...d,
+      bgm: d.bgm ?? null
+    }))
     archivedDiaries.value = storage.getArchivedDiaries()
     
     const userStore = getUserStore()
@@ -292,7 +295,8 @@ export const useDiaryStore = defineStore('diary', () => {
             decayStartAt: null,
             autoArchiveAt: null
           },
-          decayStartTime: null
+          decayStartTime: null,
+          bgm: null
         }
         
         diaries.value.push(diary)
@@ -308,7 +312,8 @@ export const useDiaryStore = defineStore('diary', () => {
     title: string,
     text: string,
     pipeline: PipelineStep[] = [],
-    schedule: Partial<DiarySchedule> = {}
+    schedule: Partial<DiarySchedule> = {},
+    bgm: string | null = null
   ): Diary {
     const now = globalTimeline.getTime()
     
@@ -342,7 +347,8 @@ export const useDiaryStore = defineStore('diary', () => {
       pipeline,
       isPublic: true,
       schedule: fullSchedule,
-      decayStartTime: fullSchedule.decayStartAt
+      decayStartTime: fullSchedule.decayStartAt,
+      bgm
     }
     
     diaries.value.push(diary)

@@ -133,6 +133,7 @@ export interface Diary {
   isPublic: boolean
   schedule: DiarySchedule
   decayStartTime: number | null
+  bgm: string | null
 }
 
 export interface User {

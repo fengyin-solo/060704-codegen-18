@@ -1,12 +1,14 @@
 <script setup lang="ts">
-import { ref, onMounted, watch, computed } from 'vue'
+import { ref, onMounted, watch, computed, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useDiary } from '@/composables/useDiary'
 import { useItems } from '@/composables/useItems'
+import { useBgmPlayer } from '@/composables/useBgmPlayer'
 import { useDiaryStore } from '@/stores/diary'
 import { pluginLoader } from '@/engine/PluginLoader'
 import { globalTimeline } from '@/engine/Timeline'
 import { STATE_ORDER, STATE_COLORS } from '@/types'
+import { BGM_TRACKS, getBgmTrackById } from '@/config/bgm'
 import type { Item, DiarySchedule } from '@/types'
 
 const route = useRoute()
@@ -33,13 +35,16 @@ const {
 } = useDiary(diaryId.value)
 
 const { itemsByRarity, useItem } = useItems()
+const bgmPlayer = useBgmPlayer()
 
 const canvasRef = ref<HTMLCanvasElement | null>(null)
 const showItemSelector = ref(false)
 const showDeleteConfirm = ref(false)
 const showScheduleEditor = ref(false)
+const showBgmEditor = ref(false)
 const itemTargetDiaryId = ref<string | null>(null)
 const previewTime = ref<number | null>(null)
+const bgmNeedsInteraction = ref(false)
 
 const editPublishAt = ref(false)
 const editDecayStartAt = ref(false)
@@ -71,6 +76,15 @@ const hasSchedule = computed(() => {
   return currentDiary.value.schedule.publishAt !== null || 
          currentDiary.value.schedule.decayStartAt !== null || 
          currentDiary.value.schedule.autoArchiveAt !== null
+})
+
+const currentBgmTrack = computed(() => {
+  if (!currentDiary.value?.bgm) return null
+  return getBgmTrackById(currentDiary.value.bgm)
+})
+
+const hasBgm = computed(() => {
+  return !!currentDiary.value?.bgm
 })
 
 function openScheduleEditor() {
@@ -160,10 +174,35 @@ let renderInterval: number | null = null
 onMounted(() => {
   render()
   renderInterval = window.setInterval(render, 500)
+  
+  if (currentDiary.value?.bgm && currentDiary.value.isPublic) {
+    bgmPlayer.play(currentDiary.value.bgm).then(() => {
+      bgmNeedsInteraction.value = false
+    }).catch(() => {
+      bgmNeedsInteraction.value = true
+    })
+  }
 })
 
-watch(() => currentDiary.value, () => {
+onUnmounted(() => {
+  bgmPlayer.stop()
+  if (renderInterval) {
+    clearInterval(renderInterval)
+  }
+})
+
+watch(() => currentDiary.value, (newDiary, oldDiary) => {
   render()
+  
+  if (newDiary?.bgm !== oldDiary?.bgm && newDiary?.bgm && newDiary.isPublic) {
+    bgmPlayer.play(newDiary.bgm).then(() => {
+      bgmNeedsInteraction.value = false
+    }).catch(() => {
+      bgmNeedsInteraction.value = true
+    })
+  } else if (!newDiary?.bgm) {
+    bgmPlayer.stop()
+  }
 }, { deep: true })
 
 watch([previewTime, diaryId], () => {
@@ -207,6 +246,26 @@ function formatTime(offset: number): string {
   if (offset < 1000) return `${(offset / 100).toFixed(1)} 百单位`
   return `${(offset / 1000).toFixed(1)} 千单位`
 }
+
+function updateBgm(bgmId: string | null) {
+  if (!currentDiary.value || !isOwner.value) return
+  diaryStore.updateDiary(currentDiary.value.id, { bgm: bgmId })
+}
+
+async function handleBgmInteraction() {
+  if (currentDiary.value?.bgm) {
+    await bgmPlayer.play(currentDiary.value.bgm)
+    bgmNeedsInteraction.value = false
+  }
+}
+
+function handleBgmToggle() {
+  if (bgmPlayer.isPlaying.value) {
+    bgmPlayer.pause()
+  } else {
+    bgmPlayer.resume()
+  }
+}
 </script>
 
 <template>
@@ -233,6 +292,13 @@ function formatTime(offset: number): string {
           @click="openScheduleEditor"
         >
           ⏰ {{ hasSchedule ? '编辑定时' : '设置定时' }}
+        </button>
+        <button
+          v-if="!isDead && isOwner"
+          class="btn-pixel text-purple-400 border-purple-400 text-sm"
+          @click="showBgmEditor = true"
+        >
+          🎵 {{ hasBgm ? '编辑配乐' : '添加配乐' }}
         </button>
         <button
           v-if="!isDead && !isScheduled"
@@ -398,6 +464,60 @@ function formatTime(offset: number): string {
                 </span>
               </div>
             </div>
+          </div>
+        </div>
+        
+        <div v-if="hasBgm || bgmNeedsInteraction" class="bg-gray-900/80 rounded-lg p-4 border border-purple-500/30">
+          <div class="flex items-center justify-between mb-3">
+            <h4 class="font-vt323 text-purple-400 text-sm">🎵 日记配乐</h4>
+            <span class="text-xs text-gray-500 font-vt323">
+              {{ bgmPlayer.isPlaying.value ? '播放中' : '已暂停' }}
+            </span>
+          </div>
+          
+          <div v-if="currentBgmTrack" class="mb-3">
+            <div class="flex items-center gap-2 mb-2">
+              <span class="text-lg">{{ currentBgmTrack.icon }}</span>
+              <span class="font-vt323 text-sm">{{ currentBgmTrack.name }}</span>
+              <span class="text-xs text-gray-500 font-vt323">{{ currentBgmTrack.mood }}</span>
+            </div>
+          </div>
+          
+          <div v-if="bgmNeedsInteraction" class="mb-3">
+            <button
+              class="w-full btn-pixel text-purple-400 border-purple-400 text-sm"
+              @click="handleBgmInteraction"
+            >
+              ▶ 点击播放配乐
+            </button>
+            <p class="text-xs text-gray-500 font-vt323 mt-1 text-center">
+              浏览器需要交互才能播放音频
+            </p>
+          </div>
+          
+          <div v-else class="flex items-center gap-2">
+            <button
+              class="btn-pixel text-purple-400 border-purple-400 text-sm px-2 py-1"
+              @click="handleBgmToggle"
+            >
+              {{ bgmPlayer.isPlaying.value ? '⏸' : '▶' }}
+            </button>
+            <button
+              class="btn-pixel text-sm px-2 py-1"
+              :class="bgmPlayer.isMuted.value ? 'text-red-400 border-red-400' : 'text-gray-400 border-gray-600'"
+              @click="bgmPlayer.toggleMute()"
+            >
+              {{ bgmPlayer.isMuted.value ? '🔇' : '🔊' }}
+            </button>
+            <input
+              type="range"
+              :min="0"
+              :max="1"
+              :step="0.05"
+              :value="bgmPlayer.volume.value"
+              class="flex-1 accent-purple-500 h-1"
+              @input="bgmPlayer.setVolume(Number(($event.target as HTMLInputElement).value))"
+            />
           </div>
         </div>
         
@@ -666,6 +786,84 @@ function formatTime(offset: number): string {
               @click="saveSchedule"
             >
               💾 保存设置
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div v-if="showBgmEditor" class="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
+      <div class="bg-gray-900 rounded-lg border-2 border-purple-500 w-full max-w-lg max-h-[90vh] overflow-y-auto">
+        <div class="p-6">
+          <div class="flex items-center justify-between mb-6">
+            <h3 class="font-vt323 text-xl text-purple-400 glow-text">
+              🎵 日记配乐
+            </h3>
+            <button
+              class="text-gray-400 hover:text-white text-xl"
+              @click="showBgmEditor = false"
+            >
+              ✕
+            </button>
+          </div>
+          
+          <p class="text-gray-400 text-sm font-vt323 mb-6">
+            为公开日记绑定背景音效，访客查看时将一起播放，营造氛围感。仅对公开日记生效。
+          </p>
+          
+          <div class="space-y-3">
+            <button
+              class="w-full px-3 py-2 rounded font-vt323 text-sm transition-all border-2 text-left"
+              :class="[
+                currentDiary?.bgm === null
+                  ? 'bg-purple-500/20 border-purple-500 text-purple-400'
+                  : 'bg-gray-800/30 border-gray-700 text-gray-500 hover:border-gray-500'
+              ]"
+              @click="updateBgm(null)"
+            >
+              🔇 不配乐
+            </button>
+            
+            <div class="grid grid-cols-2 gap-2">
+              <button
+                v-for="track in BGM_TRACKS"
+                :key="track.id"
+                class="px-3 py-2 rounded font-vt323 text-sm transition-all border-2 text-left"
+                :class="[
+                  currentDiary?.bgm === track.id
+                    ? 'bg-purple-500/20 border-purple-500 text-purple-400'
+                    : 'bg-gray-800/30 border-gray-700 text-gray-500 hover:border-gray-500'
+                ]"
+                @click="updateBgm(track.id)"
+              >
+                <div class="flex items-center gap-1">
+                  <span>{{ track.icon }}</span>
+                  <span>{{ track.name }}</span>
+                </div>
+                <div class="text-xs opacity-60 mt-0.5">{{ track.mood }}</div>
+              </button>
+            </div>
+          </div>
+          
+          <div v-if="currentBgmTrack" class="mt-4 p-3 bg-gray-800/50 rounded border border-gray-700">
+            <p class="font-vt323 text-purple-400 text-sm mb-1">当前配乐：</p>
+            <div class="flex items-center gap-2">
+              <span class="text-lg">{{ currentBgmTrack.icon }}</span>
+              <span class="font-vt323">{{ currentBgmTrack.name }}</span>
+              <span class="text-xs text-gray-500 font-vt323">{{ currentBgmTrack.mood }}</span>
+            </div>
+          </div>
+          
+          <div class="ascii-divider text-center my-6">
+            ----------------------------------------------------------------
+          </div>
+          
+          <div class="flex gap-3 justify-end">
+            <button
+              class="btn-pixel text-gray-400 border-gray-600"
+              @click="showBgmEditor = false"
+            >
+              完成
             </button>
           </div>
         </div>
