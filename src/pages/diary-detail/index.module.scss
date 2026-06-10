@@ -286,29 +286,56 @@
 }
 
 .bgmInteraction {
-  margin-bottom: $spacing-md;
+  margin-top: $spacing-md;
+  padding: $spacing-md;
+  background: rgba(168, 85, 247, 0.1);
+  border: 2rpx dashed rgba(168, 85, 247, 0.4);
+  border-radius: $radius-card;
+  text-align: center;
 }
 
 .playBtn {
   @include button-reset;
   width: 100%;
-  height: $button-height-md;
-  background: transparent;
+  height: $button-height-lg;
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.2), rgba(168, 85, 247, 0.05));
   border: 2rpx solid $color-bgm;
   border-radius: $radius-button;
   color: $color-bgm;
-  font-size: $font-size-md;
-  margin-bottom: $spacing-xs;
+  font-size: $font-size-lg;
+  font-weight: $font-weight-bold;
+  margin-bottom: $spacing-sm;
+  box-shadow: 0 0 20rpx rgba(168, 85, 247, 0.3);
+  animation: pulse 2s ease-in-out infinite;
 
   &:active {
     opacity: 0.8;
+    transform: scale(0.98);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    box-shadow: 0 0 20rpx rgba(168, 85, 247, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 40rpx rgba(168, 85, 247, 0.6);
   }
 }
 
 .bgmHint {
-  font-size: $font-size-xs;
-  color: $color-text-tertiary;
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
   text-align: center;
+  line-height: 1.5;
+}
+
+.bgmHintTitle {
+  display: block;
+  font-size: $font-size-md;
+  color: $color-bgm;
+  font-weight: $font-weight-bold;
+  margin-bottom: $spacing-xs;
 }
 
 .bgmControls {

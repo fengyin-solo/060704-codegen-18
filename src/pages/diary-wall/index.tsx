@@ -15,6 +15,9 @@ const DiaryWallPage: React.FC = () => {
   const diaryStore = useDiaryStore();
   const userStore = useUserStore();
   const bgmPlayer = useBgmPlayer();
+  const currentUserId = useUserStore(state => state.currentUserId);
+  const currentUserDiaries = useDiaryStore(state => state.currentUserDiaries);
+  const publicDiaries = useDiaryStore(state => state.publicDiaries);
 
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [filterState, setFilterState] = useState<DiaryState | 'all'>('all');
@@ -33,17 +36,8 @@ const DiaryWallPage: React.FC = () => {
   const canvasRefs = useRef<Map<string, HTMLCanvasElement | null>>(new Map());
   const renderIntervals = useRef<Map<string, number | null>>(new Map());
 
-  useEffect(() => {
-    const init = async () => {
-      await pluginLoader.loadAll();
-      setDiaryTypes(Array.from(pluginLoader.getDiaryTypes().entries()));
-      setDecayMethods(Array.from(pluginLoader.getDecayMethods().entries()));
-      diaryStore.init();
-    };
-    init();
-  }, []);
-
-  const diaries = diaryStore.currentUserDiaries;
+  const isVisitor = !currentUserId;
+  const diaries = isVisitor ? publicDiaries : currentUserDiaries;
 
   const filteredDiaries = filterState === 'all'
     ? diaries
@@ -195,8 +189,10 @@ const DiaryWallPage: React.FC = () => {
     <View className={styles.container}>
       <View className={styles.header}>
         <View>
-          <Text className={styles.title}>📝 日记墙</Text>
-          <Text className={styles.subtitle}>每篇日记都有自己的生命周期</Text>
+          <Text className={styles.title}>{isVisitor ? '🌐 公开日记' : '📝 我的日记'}</Text>
+          <Text className={styles.subtitle}>
+            {isVisitor ? '浏览公开的数字腐朽日记' : '每篇日记都有自己的生命周期'}
+          </Text>
         </View>
         {canCreate && (
           <Button
@@ -232,7 +228,7 @@ const DiaryWallPage: React.FC = () => {
         <View className={styles.emptyState}>
           <Text className={styles.emptyIcon}>📭</Text>
           <Text className={styles.emptyText}>
-            {canCreate ? '还没有日记，开始写第一篇吧' : '这里还没有公开的日记'}
+            {isVisitor ? '暂无公开日记' : (canCreate ? '还没有日记，开始写第一篇吧' : '这里还没有公开的日记')}
           </Text>
         </View>
       ) : (
@@ -291,9 +287,16 @@ const DiaryWallPage: React.FC = () => {
                   </View>
                   
                   <View className={styles.cardMeta}>
-                    <Text>
-                      {diaryTypes.find(([id]) => id === diary.type)?.[1]?.name || '未知类型'}
-                    </Text>
+                    <View>
+                      <Text>
+                        {diaryTypes.find(([id]) => id === diary.type)?.[1]?.name || '未知类型'}
+                      </Text>
+                      {isVisitor && (
+                        <Text style={{ fontSize: '20rpx', color: '#666', marginTop: '4rpx' }}>
+                          👤 {userStore.getUserById(diary.ownerId)?.name || '匿名作者'}
+                        </Text>
+                      )}
+                    </View>
                     <View>
                       {bgmInfo && (
                         <Text className={styles.bgmTag}>

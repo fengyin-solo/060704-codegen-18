@@ -30,6 +30,7 @@ const DiaryDetailPage: React.FC = () => {
   const [showBgmEditor, setShowBgmEditor] = useState(false);
   const [editingBgm, setEditingBgm] = useState<string | null>(null);
   const [bgmNeedsInteraction, setBgmNeedsInteraction] = useState(false);
+  const [bgmTriedAutoPlay, setBgmTriedAutoPlay] = useState(false);
   const [previewTime, setPreviewTime] = useState<number | null>(null);
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -98,23 +99,38 @@ const DiaryDetailPage: React.FC = () => {
   }, [renderDiary]);
 
   useEffect(() => {
-    if (diary?.bgm && diary.isPublic) {
-      bgmPlayer.play(diary.bgm).then(() => {
-        setBgmNeedsInteraction(false);
+    if (diary?.bgm && diary.isPublic && !bgmTriedAutoPlay) {
+      setBgmTriedAutoPlay(true);
+      bgmPlayer.play(diary.bgm).then((success) => {
+        if (success) {
+          setBgmNeedsInteraction(false);
+        } else {
+          setBgmNeedsInteraction(true);
+        }
       }).catch(() => {
         setBgmNeedsInteraction(true);
       });
+    } else if (diary?.bgm && diary.isPublic && bgmPlayer.playError && !bgmPlayer.isPlaying) {
+      setBgmNeedsInteraction(true);
     }
 
     return () => {
       bgmPlayer.stop();
     };
-  }, [diary?.bgm, diary?.isPublic, bgmPlayer]);
+  }, [diary?.bgm, diary?.isPublic, bgmPlayer.playError, bgmPlayer.isPlaying, bgmTriedAutoPlay]);
+
+  useEffect(() => {
+    if (bgmPlayer.playError && !bgmPlayer.isPlaying && diary?.bgm) {
+      setBgmNeedsInteraction(true);
+    }
+  }, [bgmPlayer.playError, bgmPlayer.isPlaying, diary?.bgm]);
 
   useDidShow(() => {
-    if (diary?.bgm && diary.isPublic && !bgmPlayer.isPlaying) {
-      bgmPlayer.play(diary.bgm).catch(() => {
-        setBgmNeedsInteraction(true);
+    if (diary?.bgm && diary.isPublic && !bgmPlayer.isPlaying && !bgmNeedsInteraction) {
+      bgmPlayer.play(diary.bgm).then((success) => {
+        if (!success) {
+          setBgmNeedsInteraction(true);
+        }
       });
     }
   });
@@ -155,8 +171,17 @@ const DiaryDetailPage: React.FC = () => {
 
   const handleBgmInteraction = async () => {
     if (diary?.bgm) {
-      await bgmPlayer.play(diary.bgm);
-      setBgmNeedsInteraction(false);
+      bgmPlayer.clearPlayError();
+      const success = await bgmPlayer.play(diary.bgm);
+      if (success) {
+        setBgmNeedsInteraction(false);
+      } else {
+        Taro.showToast({
+          title: '请再次点击播放',
+          icon: 'none',
+          duration: 1500
+        });
+      }
     }
   };
 
@@ -329,6 +354,14 @@ const DiaryDetailPage: React.FC = () => {
             </View>
 
             <View className={styles.metaList}>
+              {!isOwner && (
+                <View className={styles.metaItem}>
+                  <Text className={styles.metaLabel}>作者:</Text>
+                  <Text className={styles.metaValue}>
+                    👤 {userStore.getUserById(diary.ownerId)?.name || '匿名作者'}
+                  </Text>
+                </View>
+              )}
               <View className={styles.metaItem}>
                 <Text className={styles.metaLabel}>类型:</Text>
                 <Text className={styles.metaValue}>
@@ -348,7 +381,7 @@ const DiaryDetailPage: React.FC = () => {
             </View>
           </View>
 
-          {(hasBgm || bgmNeedsInteraction) && (
+          {hasBgm && (
             <View className={styles.bgmCard}>
               <View className={styles.bgmHeader}>
                 <Text className={styles.bgmTitle}>🎵 日记配乐</Text>
@@ -367,12 +400,16 @@ const DiaryDetailPage: React.FC = () => {
                 </View>
               )}
 
-              {bgmNeedsInteraction ? (
+              {(bgmNeedsInteraction || bgmPlayer.playError) && hasBgm ? (
                 <View className={styles.bgmInteraction}>
                   <Button className={styles.playBtn} onClick={handleBgmInteraction}>
-                    ▶ 点击播放配乐
+                    ▶ 点击播放氛围音乐
                   </Button>
-                  <Text className={styles.bgmHint}>小程序需要交互才能播放音频</Text>
+                  <Text className={styles.bgmHintTitle}>🎵 这篇日记配有背景氛围音乐</Text>
+                  <Text className={styles.bgmHint}>
+                    由于小程序限制，需要您手动点击才能播放。{'\n'}
+                    点击后将自动循环播放，为您营造数字腐朽的沉浸式氛围。
+                  </Text>
                 </View>
               ) : (
                 <View className={styles.bgmControls}>
